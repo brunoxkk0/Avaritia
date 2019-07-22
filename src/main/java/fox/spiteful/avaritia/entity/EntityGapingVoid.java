@@ -18,6 +18,11 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 
 public class EntityGapingVoid extends Entity {
 	
@@ -25,6 +30,7 @@ public class EntityGapingVoid extends Entity {
 	public static final int maxLifetime = 186;
 	public static double collapse = .95;
 	public static double suckrange = 20.0;
+	public static boolean grief = false;
 	
 	public static final IEntitySelector sucklector = new IEntitySelector() {
 
@@ -85,7 +91,9 @@ public class EntityGapingVoid extends Entity {
 		int age = this.getAge();
 		
 		if (age >= maxLifetime) {
-			this.worldObj.createExplosion(this, this.posX, this.posY, this.posZ, 6.0f, true);
+			if(grief){
+				this.worldObj.createExplosion(this, this.posX, this.posY, this.posZ, 6.0f, true);
+			}
 			this.setDead();
 		} else {
 			if (age == 0) {
@@ -153,39 +161,49 @@ public class EntityGapingVoid extends Entity {
 				double len = Math.sqrt(lensquared);
 				
 				if (len <= nomrange) {
-					nommee.attackEntityFrom(DamageSource.outOfWorld, 3.0f);
+					try{
+						LivingHurtEvent event = new LivingHurtEvent((EntityLivingBase) nommee,DamageSource.outOfWorld,3.0F);
+						MinecraftForge.EVENT_BUS.post(event);
+						if(!event.isCanceled()) {
+							nommee.attackEntityFrom(DamageSource.outOfWorld, 3.0f);
+						}
+					}catch (Exception e){
+						nommee.attackEntityFrom(DamageSource.outOfWorld, 3.0f);
+					}
 				}
 			}
 		}
-		
-		// every half second, SMASH STUFF
-		if (age % 10 == 0) {
-			int bx = (int) Math.floor(this.posX);
-			int by = (int) Math.floor(this.posY);
-			int bz = (int) Math.floor(this.posZ);
-			
-			int blockrange = (int) Math.round(nomrange);
-			int lx,ly,lz;
-			
-			for (int y = -blockrange; y <= blockrange; y++) {
-				for (int z = -blockrange; z <= blockrange; z++) {
-					for (int x = -blockrange; x <= blockrange; x++) {
-						lx = bx+x;
-						ly = by+y;
-						lz = bz+z;
-						
-						if (ly < 0 || ly > 255) {
-							continue;
-						}
-						
-						double dist = Math.sqrt(x*x+y*y+z*z);
-						if (dist <= nomrange && !this.worldObj.isAirBlock(lx, ly, lz)) {
-							Block b = this.worldObj.getBlock(lx, ly, lz);
-							int meta = this.worldObj.getBlockMetadata(lx, ly, lz);
-							float resist = b.getExplosionResistance(this, this.worldObj, lx, ly, lz, this.posX, this.posY, this.posZ);
-							if (resist <= 10.0) {
-								b.dropBlockAsItemWithChance(worldObj, lx, ly, lz, meta, 0.9f, 0);
-								this.worldObj.setBlockToAir(lx, ly, lz);
+
+		if(grief){
+			// every half second, SMASH STUFF
+			if (age % 10 == 0) {
+				int bx = (int) Math.floor(this.posX);
+				int by = (int) Math.floor(this.posY);
+				int bz = (int) Math.floor(this.posZ);
+
+				int blockrange = (int) Math.round(nomrange);
+				int lx,ly,lz;
+
+				for (int y = -blockrange; y <= blockrange; y++) {
+					for (int z = -blockrange; z <= blockrange; z++) {
+						for (int x = -blockrange; x <= blockrange; x++) {
+							lx = bx+x;
+							ly = by+y;
+							lz = bz+z;
+
+							if (ly < 0 || ly > 255) {
+								continue;
+							}
+
+							double dist = Math.sqrt(x*x+y*y+z*z);
+							if (dist <= nomrange && !this.worldObj.isAirBlock(lx, ly, lz)) {
+								Block b = this.worldObj.getBlock(lx, ly, lz);
+								int meta = this.worldObj.getBlockMetadata(lx, ly, lz);
+								float resist = b.getExplosionResistance(this, this.worldObj, lx, ly, lz, this.posX, this.posY, this.posZ);
+								if (resist <= 10.0) {
+									b.dropBlockAsItemWithChance(worldObj, lx, ly, lz, meta, 0.9f, 0);
+									this.worldObj.setBlockToAir(lx, ly, lz);
+								}
 							}
 						}
 					}
