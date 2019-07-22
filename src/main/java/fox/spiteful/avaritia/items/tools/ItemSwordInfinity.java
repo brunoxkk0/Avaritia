@@ -1,5 +1,6 @@
 package fox.spiteful.avaritia.items.tools;
 
+import com.mojang.authlib.GameProfile;
 import cpw.mods.fml.relauncher.ReflectionHelper;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -15,9 +16,11 @@ import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.IIcon;
@@ -53,9 +56,23 @@ public class ItemSwordInfinity extends ItemSword implements ICosmicRenderItem {
 
     @Override
     public boolean hitEntity(ItemStack stack, EntityLivingBase victim, EntityLivingBase player){
-        if(player.worldObj.isRemote)
-            return true;
+
+        if(player.worldObj.isRemote || victim.isDead) return false;
+
         if(victim instanceof EntityPlayer){
+
+            try {
+                if(MinecraftServer.getServer().getConfigurationManager().func_152596_g(((EntityPlayerMP)player).getGameProfile())){
+                    return false;
+                }
+            }catch (Exception ignored){
+
+            }
+
+            if(((EntityPlayer) victim).capabilities.isCreativeMode){
+                return false;
+            }
+
             EntityPlayer pvp = (EntityPlayer)victim;
             if(LudicrousItems.isInfinite(pvp)){
                 if(Belmont.isVampire(pvp))
@@ -74,8 +91,12 @@ public class ItemSwordInfinity extends ItemSword implements ICosmicRenderItem {
         catch(Exception e){
             Lumberjack.log(Level.ERROR, e, "The sword isn't reflecting right! Polish it!");
         }
+
+
         victim.func_110142_aN().func_94547_a(new DamageSourceInfinitySword(player), victim.getHealth(), victim.getHealth());
         victim.setHealth(0);
+
+
         if(Belmont.isVampire(victim))
             victim.onDeath(new EntityDamageSource("infinity", player).setFireDamage());
         else
