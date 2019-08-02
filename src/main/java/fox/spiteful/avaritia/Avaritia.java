@@ -1,12 +1,11 @@
 package fox.spiteful.avaritia;
 
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.SidedProxy;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -25,8 +24,15 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
 
-@Mod(modid = "Avaritia", name = "Avaritia", dependencies = "after:Thaumcraft;after:AWWayofTime;after:Botania")
+import java.io.IOException;
+import java.util.logging.Logger;
+
+@Mod(modid = "Avaritia", name = "Avaritia", dependencies = "after:Thaumcraft;after:AWWayofTime;after:Botania;after:EventHelper")
 public class Avaritia {
+
+    public static boolean EventHelperSupport = false;
+    Logger logger = Logger.getLogger("Avaritia");
+
     @Instance
     public static Avaritia instance;
 
@@ -48,13 +54,21 @@ public class Avaritia {
         }
     };
 
+
     @EventHandler
     public void earlyGame(FMLPreInitializationEvent event){
         instance = this;
+
+        if(Loader.isModLoaded("EventHelper")){
+            EventHelperSupport = true;
+            logger.info("EventHelper found adding support!");
+        }
+
         Config.configurate(event.getSuggestedConfigurationFile());
         LudicrousItems.grind();
         LudicrousBlocks.voxelize();
         Compat.census();
+
         if(Config.craftingOnly)
             return;
 
@@ -87,5 +101,18 @@ public class Avaritia {
         Achievements.achieve();
         PotionHelper.healthInspection();
         proxy.theAfterPretty();
+    }
+
+
+    @Mod.EventHandler
+    public void serverStarting(FMLServerStartingEvent event) {
+    }
+
+    @Mod.EventHandler
+    public void serverStarted(FMLServerStartedEvent event){
+    }
+
+    @Mod.EventHandler
+    public void serverStopped(FMLServerStoppedEvent event) {
     }
 }

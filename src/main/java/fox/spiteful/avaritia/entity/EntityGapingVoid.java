@@ -1,28 +1,33 @@
 package fox.spiteful.avaritia.entity;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
+import com.gamerforea.eventhelper.util.EventUtils;
+import com.gamerforea.eventhelper.util.ExplosionByPlayer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-import fox.spiteful.avaritia.Lumberjack;
+import fox.spiteful.avaritia.Avaritia;
 import net.minecraft.block.Block;
 import net.minecraft.command.IEntitySelector;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.play.server.S22PacketMultiBlockChange;
+import net.minecraft.network.play.server.S23PacketBlockChange;
+import net.minecraft.network.play.server.S27PacketExplosion;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
+import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.world.ExplosionEvent;
 
 public class EntityGapingVoid extends Entity {
 	
@@ -31,6 +36,7 @@ public class EntityGapingVoid extends Entity {
 	public static double collapse = .95;
 	public static double suckrange = 20.0;
 	public static boolean grief = false;
+	public static EntityLivingBase owner = null;
 	
 	public static final IEntitySelector sucklector = new IEntitySelector() {
 
@@ -161,13 +167,15 @@ public class EntityGapingVoid extends Entity {
 				double len = Math.sqrt(lensquared);
 				
 				if (len <= nomrange) {
+
 					try{
-						LivingHurtEvent event = new LivingHurtEvent((EntityLivingBase) nommee,DamageSource.outOfWorld,3.0F);
-						MinecraftForge.EVENT_BUS.post(event);
-						if(!event.isCanceled()) {
-							nommee.attackEntityFrom(DamageSource.outOfWorld, 3.0f);
+						if(Avaritia.EventHelperSupport){
+							if(!EventUtils.cantDamage(this, nommee)){
+								nommee.attackEntityFrom(DamageSource.outOfWorld, 3.0f);
+							}
+							return;
 						}
-					}catch (Exception e){
+					}catch (Exception ignored){
 						nommee.attackEntityFrom(DamageSource.outOfWorld, 3.0f);
 					}
 				}
@@ -199,10 +207,26 @@ public class EntityGapingVoid extends Entity {
 							if (dist <= nomrange && !this.worldObj.isAirBlock(lx, ly, lz)) {
 								Block b = this.worldObj.getBlock(lx, ly, lz);
 								int meta = this.worldObj.getBlockMetadata(lx, ly, lz);
+
 								float resist = b.getExplosionResistance(this, this.worldObj, lx, ly, lz, this.posX, this.posY, this.posZ);
 								if (resist <= 10.0) {
-									b.dropBlockAsItemWithChance(worldObj, lx, ly, lz, meta, 0.9f, 0);
-									this.worldObj.setBlockToAir(lx, ly, lz);
+
+									//b.dropBlockAsItemWithChance(worldObj, lx, ly, lz, meta, 0.9f, 0);
+									//this.worldObj.setBlockToAir(lx, ly, lz);
+
+									if(owner instanceof EntityPlayer){
+										ExplosionByPlayer.createExplosion(((EntityPlayer)owner), worldObj,this, lx,ly,lz, 1F,false);
+										AxisAlignedBB aabbEx = AxisAlignedBB.getBoundingBox(lx- 10, ly - 10, lz - 10, lx + 10, ly + 10, lz + 10);
+
+
+										for(Object obj : worldObj.getEntitiesWithinAABB(EntityPlayer.class, aabbEx)){
+											if(obj instanceof  EntityPlayer){
+												((EntityPlayerMP)obj).playerNetServerHandler.sendPacket(new S23PacketBlockChange(lx,ly,lz,worldObj));
+											}
+										}
+
+									}
+
 								}
 							}
 						}

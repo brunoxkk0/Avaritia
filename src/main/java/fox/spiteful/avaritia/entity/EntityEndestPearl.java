@@ -41,6 +41,7 @@ public class EntityEndestPearl extends EntityThrowable {
         	//this.worldObj.createExplosion(this, pos.hitVec.xCoord, pos.hitVec.yCoord, pos.hitVec.zCoord, 4.0f, true);
 
         	Entity ent = new EntityGapingVoid(this.worldObj);
+			((EntityGapingVoid)ent).owner = this.getThrower();
         	//Entity ent = new EntityChicken(this.worldObj);
         	ForgeDirection dir = ForgeDirection.getOrientation(pos.sideHit);
             ent.setLocationAndAngles(this.posX + dir.offsetX*0.25, this.posY + dir.offsetY*0.25, this.posZ + dir.offsetZ*0.25, this.rotationYaw, 0.0F);
