@@ -2,13 +2,16 @@ package fox.spiteful.avaritia.compat.botania;
 
 import java.util.List;
 
+import com.gamerforea.eventhelper.util.PlayerCooldownManager;
 import fox.spiteful.avaritia.Lumberjack;
 import fox.spiteful.avaritia.tile.TileLudicrous;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChatComponentText;
 
 
 public class TileInfinitato extends TileLudicrous {
@@ -18,6 +21,16 @@ public class TileInfinitato extends TileLudicrous {
 	public int jumpTicks = 0;
 	public String name = "";
     public int nextDoIt = 0;
+    private long cooldownTime = 0;
+
+	public void interact(EntityPlayer player) {
+		if(cooldownTime < System.currentTimeMillis()){
+			interact();
+			cooldownTime = System.currentTimeMillis() + 600000;
+		}else{
+			player.addChatComponentMessage(new ChatComponentText("\u00a7d\u00a7oVocê precisa esperar mais um pouco para poder usar novamente."));
+		}
+	}
 
     @SuppressWarnings("unchecked")
 	public void interact() {

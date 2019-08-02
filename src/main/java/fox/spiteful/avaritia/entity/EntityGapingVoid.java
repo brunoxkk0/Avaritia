@@ -210,23 +210,12 @@ public class EntityGapingVoid extends Entity {
 
 								float resist = b.getExplosionResistance(this, this.worldObj, lx, ly, lz, this.posX, this.posY, this.posZ);
 								if (resist <= 10.0) {
-
-									//b.dropBlockAsItemWithChance(worldObj, lx, ly, lz, meta, 0.9f, 0);
-									//this.worldObj.setBlockToAir(lx, ly, lz);
-
 									if(owner instanceof EntityPlayer){
-										ExplosionByPlayer.createExplosion(((EntityPlayer)owner), worldObj,this, lx,ly,lz, 1F,false);
-										AxisAlignedBB aabbEx = AxisAlignedBB.getBoundingBox(lx- 10, ly - 10, lz - 10, lx + 10, ly + 10, lz + 10);
-
-
-										for(Object obj : worldObj.getEntitiesWithinAABB(EntityPlayer.class, aabbEx)){
-											if(obj instanceof  EntityPlayer){
-												((EntityPlayerMP)obj).playerNetServerHandler.sendPacket(new S23PacketBlockChange(lx,ly,lz,worldObj));
-											}
+									    if(!EventUtils.cantBreak((EntityPlayer) owner,lx,ly,lz)){
+											b.dropBlockAsItemWithChance(worldObj, lx, ly, lz, meta, 0.9f, 0);
+											this.worldObj.setBlockToAir(lx, ly, lz);
 										}
-
 									}
-
 								}
 							}
 						}
