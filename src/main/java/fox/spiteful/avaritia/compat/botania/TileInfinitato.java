@@ -21,20 +21,6 @@ public class TileInfinitato extends TileLudicrous {
 	public int jumpTicks = 0;
 	public String name = "";
     public int nextDoIt = 0;
-    private long cooldownTime = -1;
-
-	public boolean interact(EntityPlayer player) {
-
-		if(cooldownTime != -1 && cooldownTime < System.currentTimeMillis()){
-			interact();
-			cooldownTime = System.currentTimeMillis() + 600000;
-			markDirty();
-			return true;
-		}else{
-			player.addChatComponentMessage(new ChatComponentText("\u00a7d\u00a7oEspere um pouco para usar novamente!"));
-			return false;
-		}
-	}
 
     @SuppressWarnings("unchecked")
 	public void interact() {
@@ -94,12 +80,10 @@ public class TileInfinitato extends TileLudicrous {
 	@Override
 	public void writeCustomNBT(NBTTagCompound cmp) {
 		cmp.setString(TAG_NAME, name);
-		cmp.setLong("cooldown", cooldownTime);
 	}
 
 	@Override
 	public void readCustomNBT(NBTTagCompound cmp) {
 		name = cmp.getString(TAG_NAME);
-		cooldownTime = cmp.getLong("cooldown");
 	}
 }
