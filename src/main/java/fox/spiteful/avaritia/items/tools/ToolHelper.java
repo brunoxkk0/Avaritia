@@ -8,6 +8,7 @@
 package fox.spiteful.avaritia.items.tools;
 
 import com.gamerforea.eventhelper.util.EventUtils;
+import fox.spiteful.avaritia.Avaritia;
 import fox.spiteful.avaritia.items.LudicrousItems;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -54,8 +55,13 @@ public class ToolHelper {
         for(int x1 = xs; x1 < xe; x1++)
             for(int y1 = ys; y1 < ye; y1++)
                 for(int z1 = zs; z1 < ze; z1++)
-                    if(!EventUtils.cantBreak(player, x+x1, y+y1, z+z1))
-                    removeBlockWithDrops(player, stack, world, x1 + x, y1 + y, z1 + z, block, materialsListing, silk, fortune, blockHardness, dispose);
+                    if(Avaritia.EventHelperSupport){
+                        if(!EventUtils.cantBreak(player, x+x1, y+y1, z+z1)){
+                            removeBlockWithDrops(player, stack, world, x1 + x, y1 + y, z1 + z, block, materialsListing, silk, fortune, blockHardness, dispose);
+                        }
+                    }else{
+                        removeBlockWithDrops(player, stack, world, x1 + x, y1 + y, z1 + z, block, materialsListing, silk, fortune, blockHardness, dispose);
+                    }
         
         int meta = world.getBlockMetadata(x, y, z);
         if(!world.isRemote /*&& ConfigHandler.blockBreakParticles && ConfigHandler.blockBreakParticlesTool*/)

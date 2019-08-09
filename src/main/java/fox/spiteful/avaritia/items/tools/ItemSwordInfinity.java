@@ -109,7 +109,12 @@ public class ItemSwordInfinity extends ItemSword implements ICosmicRenderItem {
     public boolean onLeftClickEntity(ItemStack stack, EntityPlayer player, Entity entity){
         if(!entity.worldObj.isRemote && entity instanceof EntityPlayer) {
             EntityPlayer victim = (EntityPlayer)entity;
-            if(EventUtils.cantDamage(player, victim) && !victim.capabilities.isCreativeMode && !victim.isDead && victim.getHealth() > 0 && !LudicrousItems.isInfinite(victim)){
+
+            if(Avaritia.EventHelperSupport && EventUtils.cantDamage(player, victim)){
+                return false;
+            }
+
+            if(!victim.capabilities.isCreativeMode && !victim.isDead && victim.getHealth() > 0 && !LudicrousItems.isInfinite(victim)){
                 victim.func_110142_aN().func_94547_a(new DamageSourceInfinitySword(player), victim.getHealth(), victim.getHealth());
                 victim.setHealth(0);
                 victim.onDeath(new EntityDamageSource("infinity", player));
