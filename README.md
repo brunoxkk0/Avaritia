@@ -1,5 +1,5 @@
 
-#This version is edit to add support to (EventHelper)[https://github.com/gamerforEA/EventHelper] to improve server protection.
+#This version is edit to add support to [EventHelper](https://github.com/gamerforEA/EventHelper) to improve server protection.
 
 This is the repository for the 1.7.10 version of Avaritia.  For the version of Avaritia for later versions of Minecraft, see:
 https://github.com/Morpheus1101/Avaritia
